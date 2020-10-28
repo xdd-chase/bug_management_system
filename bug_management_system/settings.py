@@ -116,7 +116,21 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # 短信模板
+
 SMS = 0
+
+# 腾讯短信
+TENCENT_SMS_APP_ID = 111
+TENCENT_SMS_APP_KEY = "QQQQQQQQQQQQQQQQQQQQ"
+
+# 短信签名
+TENCENT_SMS_SIGN = "PYTHON"
+
+TENCENT_SMS_TEMPLATE = {
+    'register': 758918,
+    'login': 758917,
+    'rest': 758912
+}
 
 try:
     from .loal_settings import *
