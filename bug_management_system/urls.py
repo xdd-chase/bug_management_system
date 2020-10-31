@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from bug_management_system import views
+from mgt import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('send/sms/', views.send_sms),
+    path('mgt/register/', views.register),
 ]
