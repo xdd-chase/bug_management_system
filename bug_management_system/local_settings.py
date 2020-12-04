@@ -6,11 +6,11 @@ TENCENT_SMS_APP_ID = 1400441044
 TENCENT_SMS_APP_KEY = "b3c9800e1bc6ccb877bf583c2726c85d"
 
 # 短信签名
-TENCENT_SMS_SIGN = "PYTHON"
+TENCENT_SMS_SIGN = "点滴生活微记"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.0.100:6379",  # 安装redis的主机的 IP 和 端口
+        "LOCATION": "redis://192.168.0.105:6379",  # 安装redis的主机的 IP 和 端口
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {

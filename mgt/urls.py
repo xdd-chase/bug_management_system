@@ -16,8 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from mgt import views
+app_name = 'mgt'
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('mgt/', include('mgt.urls', namespace='mgt')),
-    path('', include('web.urls')),
+    path('send/sms/', views.send_sms),
+    path('register/', views.register, name='register'),  # 当要反向解析此register时，则需要写’mgt:register'
 ]

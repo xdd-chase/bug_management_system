@@ -1,6 +1,6 @@
 {% extends 'layout/basic.html' %}
 {% load static %}
-{% block title %}用户注册{% endblock %}
+{% block title %}短信登录{% endblock %}
 
 {% block css %}
     <link rel="stylesheet" href="{% static 'css/account.css' %}">
@@ -14,8 +14,8 @@
 
 {% block content %}
     <div class="account">
-        <div class="title">用户注册</div>
-        <form id="form" method="post" novalidate>
+        <div class="title">用户登录</div>
+        <form id="smsForm" method="post" novalidate>
             {% csrf_token %}
             {% for field in form %}
                 {% if field.name == 'code' %}
@@ -38,16 +38,20 @@
                     </div>
                 {% endif %}
             {% endfor %}
+            <div>
+                <div style="float: right">
+                    <a href="{% url 'login' %}">用户名密码登录？</a>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-xs-3">
-                    <button id="btnSubmit" type="button" class="btn btn-primary">注 册</button>
+                    <button id="btnSubmit" type="button" class="btn btn-primary">登录</button>
                 </div>
             </div>
         </form>
     </div>
 
 {% endblock %}
-
 {% block js %}
     <script>
     // 页面加载完成后自动执行
@@ -70,7 +74,7 @@
             $.ajax({
                 url: "{% url 'send_sms' %}",  // 等价于/send/sms/
                 type: "GET",
-                data: {mobile_phone: mobilePhone, tpl:'register'},
+                data: {mobile_phone: mobilePhone, tpl:'login'},
                 dataType:"JSON",//将服务端返回的数据反序列化为字典，即当后台返回非json格式时，在success中添加 res_dic= JSON.parse（res）
                 success: function (res) {
                     //res_dict = JSON.parse(res)
@@ -84,7 +88,6 @@
                             $("#id_" + key).next().text(value[0]);
                         })
                     }
-                    console.log(res);
                 }
 
             })
@@ -93,33 +96,33 @@
     }
     // 倒计时
     function sendSmsRemind() {
-        let $smsBtn = $('#BtnSms');
-        $smsBtn.prop('disabled', true);
+        console.log("!!!")
+        $('#BtnSms').attr("disabled", true);
         let time = 60;
         let remind = setInterval(function () {
-            $smsBtn.val(time + '秒重新发送');
+            $('#BtnSms').val(time + '秒重新发送');
             time = time - 1;
-            if (time <= 0){
+            if (time < 1){
                 clearInterval(remind);
-                $smsBtn.val('点击获取验证码').prop('disabled', false);
+                $('#BtnSms').val('点击获取验证码').attr('disabled', false);
             }
 
         }, 1000)
     }
-    // 点击注册按钮绑定事件
+    // 点击登录按钮绑定事件
     function bindClickSubmit() {
        $('#btnSubmit').click(function () {
            $('.error-msg').empty();
            // 收集表单每一个字段数据 $('#form').serialize()
            //数据发送到后台
            $.ajax({
-               url:"{% url 'register' %}",
+               url:"{% url 'login_sms' %}",
                type: "POST",
-               data: $('#form').serialize(),  // 获取了所有的字段并且还有csrf token
+               data: $('#smsForm').serialize(),  // 获取了所有的字段并且还有csrf token
                dataType: "JSON",
                success: function (res) {
                     if (res.status){
-                        console.log(res);
+                        console.log(res)
                         location.href = res.data;
                     }else {
                         console.log(res.error)

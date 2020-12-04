@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'web.middlewares.auth.AuthMiddleware',
 ]
 
 ROOT_URLCONF = 'bug_management_system.urls'
@@ -108,7 +109,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'UTC'
 
@@ -140,7 +142,17 @@ TENCENT_SMS_TEMPLATE = {
     'rest': 758912
 }
 
+# 登录白名单：无需登录就可以访问的页面
+WHITE_REGEX_URL_LIST = [
+    "/register/",
+    "/login/sms/",
+    "/login/",
+    "/image/code/",
+    "/send/sms/",
+    "/index/"
+]
+
 try:
-    from .loal_settings import *
+    from .local_settings import *
 except ImportError:
     pass
