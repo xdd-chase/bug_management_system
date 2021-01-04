@@ -9,16 +9,7 @@ from django.core.exceptions import ValidationError
 
 from web import models
 from django.core.validators import RegexValidator
-
-
-class BootStrapForm(object):
-    """BootStrap基类，给需要的字段添加class样式"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():  # name代表当前字段的name，fields则代表每个字段后面的对象
-            field.widget.attrs['class'] = 'form-control'
-            field.widget.attrs['placeholder'] = '请输入%s' % (field.label,)
+from web.forms.bootstrap import BootStrapForm
 
 
 class RegisterModelForm(BootStrapForm, forms.ModelForm):

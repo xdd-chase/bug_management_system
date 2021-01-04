@@ -13,10 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
+from django.urls import path, include
 from web.views import account
 from web.views import home
-from web.views import project
+from web.views import project, manage
 
 urlpatterns = [
     path('register/', account.register, name='register'),  # name设置便于反向解析
@@ -26,5 +26,21 @@ urlpatterns = [
     path('send/sms/', account.send_sms, name='send_sms'),  # 发送短信
     path('logout/', account.logout, name='logout'),  # 退出
     path('index/', home.index, name='index'),  # 主页
+    # 项目管理
     path('project/project_list/', project.project_list, name='project_list'),  # 管理中心中的项目列表
+    # /project/star/my/1
+    # /project/star/join/1
+    path('project/star/<str:project_type>/<int:project_id>/', project.project_star, name='project_star'),  # 星标项目
+    # 取消星标项目
+    path('project/unstar/<str:project_type>/<int:project_id>/', project.project_unstar, name='project_unstar'),
+
+    path('manage/<int:project_id>/', include([
+        path('dashboard/', manage.dashboard, name='dashboard'),
+        path('issues/', manage.issues, name='issues'),
+        path('statistics/', manage.statistics, name='statistics'),
+        path('file/', manage.file, name='file'),
+        path('wiki/', manage.wiki, name='wiki'),
+        path('setting/', manage.setting, name='setting'),
+    ])),
+
 ]

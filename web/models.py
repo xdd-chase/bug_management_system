@@ -47,15 +47,15 @@ class Project(models.Model):
     """项目表"""
     color_choice = (
         (1, '#56b8eb'),
-        (1, '#56b8eb'),
-        (1, '#56b8eb'),
-        (1, '#56b8eb'),
-        (1, '#56b8eb'),
-        (1, '#56b8eb'),
-        (1, '#56b8eb'),
+        (2, '#f28033'),
+        (3, '#ebc656'),
+        (4, '#a2d148'),
+        (5, '#208fa4'),
+        (6, '#7461c2'),
+        (7, '#20bfa3'),
     )
     name = models.CharField(verbose_name='项目名', max_length=64)
-    color = models.SmallIntegerField(verbose_name='颜色0', choices=color_choice, default=1)
+    color = models.SmallIntegerField(verbose_name='颜色', choices=color_choice, default=1)
     desc = models.TextField(verbose_name='项目描述', null=True, blank=True)
     used_space = models.IntegerField(verbose_name='项目已使用空间', default=0)
     star = models.BooleanField(verbose_name='星标', default=False)
