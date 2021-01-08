@@ -1,5 +1,106 @@
 {% extends 'layout/manage.html' %}
+{% block css %}
+    <style>
+        .panel-body {
+            padding: 0;
+        }
 
-{% block content %}
-    <h1>文档</h1>
+        .title-list {
+            border-right: 1px solid #dddddd;
+            min-height: 400px;
+        }
+
+        .title-list ul {
+            padding-left: 15px;
+        }
+
+        .title-list ul a {
+            display: block;
+            padding: 5px 0;
+        }
+
+        .panel-default .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .content {
+            border-left: 1px solid #dddddd;
+            min-height: 500px;
+            margin-left: -1px;
+        }
+    </style>
 {% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div>
+                    <i class="fa fa-book" aria-hidden="true"></i> wiki文档
+                </div>
+                <div class="function">
+                    <a type="button" class="btn btn-success btn-xs"
+                       href="{% url 'wiki_add' request.bug_mgt.project.id %}">
+                        <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                        新建
+                    </a>
+                </div>
+
+            </div>
+            <div class="panel-body">
+                <div class="col-sm-3 title-list">
+                    <ul id="catalog">
+                    </ul>
+                </div>
+                <div class="col-sm-9 content">
+                    <div style="text-align: center; margin-top: 50px">
+                        <h4>《{{ request.bug_mgt.project.name }}》Wiki文档库</h4>
+                        <a href="{% url 'wiki_add' request.bug_mgt.project.id %}">
+                            <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建项目
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        const WIKI_DETAIL_URL = "{% url 'wiki' project_id=request.bug_mgt.project.id %}"
+        $(function () {
+            initCatalog();
+        });
+
+        function initCatalog() {
+            $.ajax({
+                url: "{% url 'wiki_catalog' project_id=request.bug_mgt.project.id %}",
+                type: "GET",
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        $.each(res.data, function (index, item) {
+                            let href = WIKI_DETAIL_URL + "?wiki_id=" + item.id;
+                            // item={id: 3, title: "first", parent_id: null},{id: 4, title: "second", parent_id: null}
+                            if (!item.parent_id) {
+                                // <li id="id_1"><a>子目录</a></li>
+                                let li = $("<li>").attr('id', "id_" + item.id).append($("<a>").text(item.title).attr('href', href)).append($("<ul>"));
+                                $("#catalog").append(li);
+                            }else {
+                                let li = $("<li>").attr('id', "id_" + item.id).append($("<a>").text(item.title)).append($("<ul>"));
+                                $("#id_" + item.parent_id).children('ul').append(li);
+                            }
+                        })
+                        console.log(res)
+                    } else {
+                        alert('初始化目录失败')
+                    }
+                }
+            })
+
+        }
+    </script>
+{% endblock %}
+
+
+

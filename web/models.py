@@ -70,3 +70,16 @@ class ProjectUser(models.Model):
     project = models.ForeignKey(verbose_name='项目', to='Project', on_delete=models.CASCADE)
     star = models.BooleanField(verbose_name='星标', default=False)
     create_datetime = models.DateTimeField(verbose_name='加入时间', auto_now_add=True)
+
+
+class Wiki(models.Model):
+    project = models.ForeignKey(verbose_name='项目', to='Project', on_delete=models.CASCADE)
+    title = models.CharField(verbose_name='标题', max_length=32)
+    content = models.TextField(verbose_name='内容')
+    depth = models.IntegerField(verbose_name='深度', default=1)  # 深度，代表目录是第几级目录，每当添加一个子目录，就加一
+    # 自关联
+    parent = models.ForeignKey(verbose_name='父级文章', to='Wiki', null=True, blank=True, on_delete=models.CASCADE,
+                               related_name='children')
+
+    def __str__(self):
+        return self.title

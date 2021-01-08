@@ -39,9 +39,7 @@
             <ul class="nav navbar-nav">
                 {% all_project_list request %}
                 {% if request.bug_mgt.project %}
-                    <li><a href="{% url 'dashboard' project_id=request.bug_mgt.project.id %}">概述</a></li>
-                    <li><a href="{% url 'issues' project_id=request.bug_mgt.project.id %}">问题</a></li>
-                    <li><a href="{% url 'wiki' project_id=request.bug_mgt.project.id %}">wiki</a></li>
+                    {% manage_menu_list request %}
                 {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">

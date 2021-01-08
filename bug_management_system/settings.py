@@ -24,7 +24,7 @@ SECRET_KEY = 'icpxfmdw@6a2xqs99)q2(77_ehdze2@#c4xh9u-9b)k0-b4()z'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -79,9 +79,9 @@ DATABASES = {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bug_system',
+        'NAME': 'bug_management_system',
         'USER': 'root',
-        'PASSWORD': '123456',
+        'PASSWORD': '12306',
         'HOST': 'localhost',
         'PORT': '3306',
 
@@ -112,7 +112,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 

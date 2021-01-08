@@ -16,7 +16,7 @@ Including another URLconf
 from django.urls import path, include
 from web.views import account
 from web.views import home
-from web.views import project, manage
+from web.views import project, manage, wiki
 
 urlpatterns = [
     path('register/', account.register, name='register'),  # name设置便于反向解析
@@ -39,7 +39,9 @@ urlpatterns = [
         path('issues/', manage.issues, name='issues'),
         path('statistics/', manage.statistics, name='statistics'),
         path('file/', manage.file, name='file'),
-        path('wiki/', manage.wiki, name='wiki'),
+        path('wiki/', wiki.wiki, name='wiki'),
+        path('wiki/add', wiki.wiki_add, name='wiki_add'),
+        path('wiki/catalog', wiki.wiki_catalog, name='wiki_catalog'),
         path('setting/', manage.setting, name='setting'),
     ])),
 
