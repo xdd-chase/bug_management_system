@@ -45,6 +45,20 @@
                         <i class="fa fa-plus-circle" aria-hidden="true"></i>
                         新建
                     </a>
+                    {% if wiki_object %}
+                        <a href="{% url 'wiki_edit' project_id=request.bug_mgt.project.id wiki_id=wiki_object.id %}"
+                           class="btn btn-success btn-xs"
+                           type="button">
+                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                            编辑
+                        </a>
+                        <a href="{% url 'wiki_delete' project_id=request.bug_mgt.project.id wiki_id=wiki_object.id %}"
+                           class="btn btn-success btn-xs" type="button">
+                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                            删除
+                        </a>
+                    {% endif %}
+
                 </div>
 
             </div>
@@ -54,12 +68,16 @@
                     </ul>
                 </div>
                 <div class="col-sm-9 content">
-                    <div style="text-align: center; margin-top: 50px">
-                        <h4>《{{ request.bug_mgt.project.name }}》Wiki文档库</h4>
-                        <a href="{% url 'wiki_add' request.bug_mgt.project.id %}">
-                            <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建项目
-                        </a>
-                    </div>
+                    {% if wiki_object %}
+                        {{ wiki_object.content }}
+                    {% else %}
+                        <div style="text-align: center; margin-top: 50px">
+                            <h4>《{{ request.bug_mgt.project.name }}》Wiki文档库</h4>
+                            <a href="{% url 'wiki_add' request.bug_mgt.project.id %}">
+                                <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建项目
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -86,7 +104,7 @@
                                 // <li id="id_1"><a>子目录</a></li>
                                 let li = $("<li>").attr('id', "id_" + item.id).append($("<a>").text(item.title).attr('href', href)).append($("<ul>"));
                                 $("#catalog").append(li);
-                            }else {
+                            } else {
                                 let li = $("<li>").attr('id', "id_" + item.id).append($("<a>").text(item.title)).append($("<ul>"));
                                 $("#id_" + item.parent_id).children('ul').append(li);
                             }
