@@ -1,10 +1,12 @@
 """
 有关后台管理中的项目查看，新建等功能
 """
+import time
 from django.shortcuts import render, redirect
 from web.forms.project import ProjectModelForm
 from django.http import JsonResponse, HttpResponse
 from web import models
+from utils.tencent import cos
 
 
 def project_list(request):
@@ -37,9 +39,16 @@ def project_list(request):
         return render(request, 'web/project_list.html', {'form': form, 'project_dict': project_dict})
     form = ProjectModelForm(request, data=request.POST)
     if form.is_valid():  # 只有当表单验证的数据都合法（例如手机号码验证等），is_valid()才等于True
+        name = form.cleaned_data['name']
+        # 为项目创建桶
+        bucket = "{}-{}-{}-1259386016".format(name, request.bug_mgt.user.mobile_phone, str(int(time.time())))
+        region = 'ap-nanjing'
+        cos.create_bucket(bucket=bucket, region=region)
         # 验证通过后，则需要向数据库写入数据，此时project表中所必须填入的字段有
         # 项目名，颜色，描述，（项目使用空间，星标，项目参与人数，创建时间这些都有默认值，不需要赋值），创建者
         form.instance.creator = request.bug_mgt.user
+        form.instance.bucket = bucket
+        form.instance.region = region
         form.save()
         return JsonResponse({'status': True})
     return JsonResponse({'status': False, 'error': form.errors})

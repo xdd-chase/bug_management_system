@@ -1,5 +1,284 @@
 {% extends 'layout/manage.html' %}
+{% load static %}
+{% block css %}
+    <style>
+        .panel-default .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
 
+        .panel-default > .panel-heading a {
+            text-decoration: none;
+        }
+
+        .panel-default > .panel-heading span {
+            padding: 0 5px;
+        }
+
+        .panel-default > .panel-heading .function .upload {
+            overflow: hidden;
+        }
+
+        .panel-default > .panel-heading .function .upload input {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 76px;
+            left: -2px;
+            overflow: hidden;
+        }
+    </style>
+{% endblock %}
 {% block content %}
-    <h1>文件</h1>
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading">
+            <div>
+                <a href="{% url 'file' project_id=request.bug_mgt.project.id %}">
+                    <i class="fa fa-home" aria-hidden="true"></i>
+                    <span>文件库</span>
+                </a>
+                {% for item in breadcrumb_list %}
+                    <a href="{% url 'file' project_id=request.bug_mgt.project.id %}?folder_id={{ item.id }}">
+                        <i class="fa fa-caret-right" aria-hidden="true"></i>
+                        <span>{{ item.name }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+            <div class="function">
+                <div class="btn btn-success btn-xs upload" style="position: relative">
+                    <div><i class="fa fa-upload" aria-hidden="true"></i> 上传文件</div>
+                    <!-- 对于input框 type=”file“的样式是无法修改的，所以对他进行样式修改，一般使用样式opacity=0;使他透明度为0-->
+                    <input type="file" multiple name="uploadFile" id="uploadFile">
+                </div>
+                <a class="btn btn-success btn-xs" data-toggle="modal" data-target="#addModal" data-whatever="新建文件夹">
+                    <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建文件夹
+                </a>
+            </div>
+        </div>
+        <!-- Table -->
+        <table class="table">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>文件大小</th>
+                <th>更新者</th>
+                <th>更新时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in file_object_list %}
+                <tr>
+                    <td scope="row">
+                        <a href="{% url 'file' project_id=request.bug_mgt.project.id %}?folder_id={{ item.id }}">
+                            {% if item.file_type == 1 %}
+                                <i class="fa fa-file" aria-hidden="true"></i>
+                            {% else %}
+                                <i class="fa fa-folder" aria-hidden="true"></i>
+                            {% endif %}
+                            {{ item.file_name }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if item.file_type == 1 %}
+                            {{ item.size }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ item.update_user.username }}</td>
+                    <td>{{ item.update_time }}</td>
+                    <td>
+                        {% if item.file_type == 2 %}
+                            <a class="btn btn-success btn-xs" data-toggle="modal" data-target="#addModal"
+                               data-whatever="编辑文件夹" data-name="{{ item.file_name }}" data-fid="{{ item.id }}">
+                                <i class="fa fa-pencil-square-o" aria-hidden="true" title="编辑"></i>
+                            </a>
+                        {% endif %}
+                        <a class="btn btn-success btn-xs" data-toggle="modal" data-target="#alertModal"
+                           data-fid="{{ item.id }}">
+                            <i class="fa fa-trash" aria-hidden="true" title="删除"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <!-- Modal1 -->
+        <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form">
+                            {% csrf_token %}
+                            <input class="hide" type="text" name="fid" id="fid">
+                            {% for field in form %}
+                                <div class="form-group">
+                                    <label for={{ field.id_for_label }}>{{ field.label }}</label>
+                                    {{ field }}
+                                    <span class="error-msg">{{ field.errors.0 }}</span>
+                                </div>
+                            {% endfor %}
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
+                        <button id="btnFormSubmit" type="button" class="btn btn-primary">确 定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal2 -->
+        <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                    <h4>是否确定删除？ </h4>
+                    <p style="padding-top: 20px;">文件夹中包含的文件夹和文件都将被删除。</p>
+                    <p style="text-align: right">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">取 消</button>
+                        <button id="btnDelete" type="button" class="btn btn-primary">确 定</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input id="file-selector" type="file">
+{% endblock %}
+{% block js %}
+    <script src="{% static 'js/cos-js-sdk-v5/cos-js-sdk-v5.min.js' %}"></script>
+    <script>
+        var FILE_DELETE_URL = "{% url 'file_delete' project_id=request.bug_mgt.project.id %}"
+        // 定义获取凭证请求的路由
+        var COS_CREDENTIAL = "{% url 'cos_credential' project_id=request.bug_mgt.project.id %}"
+        // 初始化实例
+        var COS_OBJECT = new COS({
+            getAuthorization: function (options, callback) {
+                // 异步获取临时密钥
+                $.get(COS_CREDENTIAL, {
+                    bucket: options.Bucket,
+                    region: options.Region,
+                }, function (data) {
+                    var credentials = data && data.credentials;
+                    if (!data || !credentials) return console.error('credentials invalid');
+                    callback({
+                        TmpSecretId: credentials.tmpSecretId,
+                        TmpSecretKey: credentials.tmpSecretKey,
+                        XCosSecurityToken: credentials.sessionToken,
+                        // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
+                        StartTime: data.startTime, // 时间戳，单位秒，如：1580000000
+                        ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000900
+                    });
+                });
+            }
+        });
+        $(function () {
+            initModelTitle();
+            bindModelSubmit();
+            bindModelDelete();
+            bindUploadFile();
+        })
+
+        function initModelTitle() {
+            $('#addModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget) // Button that triggered the modal
+                var recipient = button.data('whatever') // Extract info from data-* attributes
+                var name = button.data('name')
+                var fid = button.data('fid')
+                var modal = $(this)
+                modal.find('.modal-title').text(recipient)
+                // 如果有fid参数，则这个弹窗是编辑弹窗，若没有则是新建文件夹弹窗
+                if (fid) {
+                    // 编辑
+                    modal.find('.error-msg').empty()
+                    modal.find('#id_file_name').val(name)
+                    // 再在form表单中添加一个input框，设置他的name="fid" id="fid"，再将获取到的fid的值赋值给刚刚添加的input框中
+                    // 之所以要添加一个隐藏的input框，就是为了编辑文件夹后，向后台发送post请求，携带当前编辑的文件夹的name和id给后台，
+                    // 而这个文件夹的id正好存在刚刚那个隐藏的input框内，后台只要request.GET.get('fid', "")一下就可以获取了
+                    modal.find('#fid').val(fid)
+                } else {
+                    // 新建
+                    modal.find('.error-msg').empty()
+                    $("#form")[0].reset()  // 清空form表单中所有输入部分的内容
+                }
+
+            });
+            $('#alertModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget) // Button that triggered the modal
+                var fid = button.data('fid')
+                var modal = $(this)
+                // 为解决点击删除按钮，将当前的文件夹或文件id传给后台，则当点击删除按钮，弹出模态框后，给模态框中id=btnDelete的确定按钮
+                // 绑定一个fid属性，值为文件夹或文件id
+                $('#btnDelete').attr('fid', fid)
+            })
+        }
+
+        function bindModelSubmit() {
+            $("#btnFormSubmit").click(function () {
+                $.ajax({
+                    url: location.href,  // 当向后台发送带有？folder_id=XXX时，就把当前的浏览器地址发送给后台
+                    type: "POST",
+                    data: $("#form").serialize(),
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            location.href = location.href;
+                        } else {
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next().text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        function bindModelDelete() {
+            $("#btnDelete").click(function () {
+                $.ajax({
+                    url: FILE_DELETE_URL,
+                    type: "GET",
+                    data: {'fid': $(this).attr('fid')},
+                    success: function (res) {
+                        if (res.status) {
+                            location.href = location.href;
+                        }
+                    }
+                })
+            })
+        }
+
+        function bindUploadFile() {
+            $("#uploadFile").change(function () {
+                // $(this)获取当前input框对象，$(this)[0]将input对象转化为dom对象，$(this)[0].files获取dom中的文件集合
+                var fileList = $(this)[0].files;
+                // 循环文件集合
+                $.each(fileList, function (index, fileObject) {
+                    var fileName = fileObject.name
+                    // 上传文件到cos(异步)
+                    COS_OBJECT.putObject({
+                        Bucket: '{{request.bug_mgt.project.bucket}}', /* 必须 */
+                        Region: '{{request.bug_mgt.project.region}}',     /* 存储桶所在地域，必须字段 */
+                        Key: fileName,              /* 必须 */
+                        StorageClass: 'STANDARD',
+                        Body: fileObject, // 上传文件对象
+                        onProgress: function (progressData) {
+                            console.log("文件上传进度", fileName, JSON.stringify(progressData));
+                        }
+                    }, function (err, data) {
+                        console.log(err || data);
+                    });
+                })
+            })
+        }
+    </script>
 {% endblock %}

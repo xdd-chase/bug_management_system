@@ -1,5 +1,7 @@
 {% extends 'layout/manage.html' %}
+{% load static %}
 {% block css %}
+    <link rel="stylesheet" href="{% static 'plugin/editor.md-master/editor.md-master/css/editormd.min.css' %}">
     <style>
         .panel-body {
             padding: 0;
@@ -8,6 +10,15 @@
         .title-list {
             border-right: 1px solid #dddddd;
             min-height: 400px;
+        }
+
+        .title-list ul {
+            padding-left: 15px;
+        }
+
+        .title-list ul a {
+            display: block;
+            padding: 5px 0;
         }
 
         .panel-default .panel-heading {
@@ -20,6 +31,9 @@
             border-left: 1px solid #dddddd;
             min-height: 500px;
             margin-left: -1px;
+        }
+        .editormd-fullscreen{
+            z-index: 1001;
         }
     </style>
 {% endblock %}
@@ -41,17 +55,28 @@
             </div>
             <div class="panel-body">
                 <div class="col-sm-3 title-list">
-                    目录
+                    <ul id="catalog">
+                    </ul>
                 </div>
                 <div class="col-sm-9 content">
                     <form method="post">
                         {% csrf_token %}
                         {% for filed in form %}
-                            <div class="form-group">
-                                <label for="{{ filed.id_for_label }}">{{ filed.label }}</label>
-                                {{ filed }}
-                            <span class="error-msg">{{ filed.errors.0 }}</span>
-                            </div>
+                            {% if filed.name == 'content' %}
+                                <div class="form-group">
+                                    <label for="{{ filed.id_for_label }}">{{ filed.label }}</label>
+                                    <div id="editor">
+                                        {{ filed }}
+                                    </div>
+                                    <span class="error-msg">{{ filed.errors.0 }}</span>
+                                </div>
+                            {% else %}
+                                <div class="form-group">
+                                    <label for="{{ filed.id_for_label }}">{{ filed.label }}</label>
+                                    {{ filed }}
+                                    <span class="error-msg">{{ filed.errors.0 }}</span>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                         <button type="submit" class="btn btn-primary">提 交</button>
                     </form>
@@ -59,4 +84,56 @@
             </div>
         </div>
     </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/editormd.min.js' %}"></script>
+    <script>
+        const WIKI_DETAIL_URL = "{% url 'wiki' project_id=request.bug_mgt.project.id %}"
+        const WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.bug_mgt.project.id %}"
+        $(function () {
+            initCatalog();
+            // 初始化编辑器
+            initEditorMd();
+        });
+
+        function initCatalog() {
+            $.ajax({
+                url: "{% url 'wiki_catalog' project_id=request.bug_mgt.project.id %}",
+                type: "GET",
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        $.each(res.data, function (index, item) {
+                            let href = WIKI_DETAIL_URL + "?wiki_id=" + item.id;
+                            // item={id: 3, title: "first", parent_id: null},{id: 4, title: "second", parent_id: null}
+                            if (!item.parent_id) {
+                                // <li id="id_1"><a>子目录</a></li>
+                                let li = $("<li>").attr('id', "id_" + item.id).append($("<a>").text(item.title).attr('href', href)).append($("<ul>"));
+                                $("#catalog").append(li);
+                            } else {
+                                let li = $("<li>").attr('id', "id_" + item.id).append($("<a>").text(item.title)).append($("<ul>"));
+                                $("#id_" + item.parent_id).children('ul').append(li);
+                            }
+                        })
+                        console.log(res)
+                    } else {
+                        alert('初始化目录失败')
+                    }
+                }
+            })
+
+        }
+
+        function initEditorMd() {
+            editormd('editor', {
+                placeholder: '请输入内容',
+                height: 500,
+                // 依赖的组件和包，需要导入组件的路径,
+                path: '{% static 'plugin/editor.md-master/editor.md-master/lib/' %}',
+                imageUpload: true,
+                imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                imageUploadURL : WIKI_UPLOAD_URL,
+            })
+        }
+    </script>
 {% endblock %}

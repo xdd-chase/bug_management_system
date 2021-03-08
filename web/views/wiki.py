@@ -3,6 +3,9 @@ from django.http import JsonResponse, HttpResponse
 from web import models
 from web.forms.wiki import WikiModelForm
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from utils.tencent import cos
+from utils.encrypt import uid
 
 
 def wiki(request, project_id):
@@ -77,6 +80,33 @@ def wiki_edit(request, project_id, wiki_id):
         preview_url = "{0}?wiki_id={1}".format(url, wiki_id)
         return redirect(preview_url)
     return render(request, 'web/wiki_form.html', {'form': form})
+
+
+@csrf_exempt
+def wiki_upload(request, project_id):
+    """markdown插件上传图片"""
+    file_project = request.FILES.get('editormd-image-file')
+    if not file_project:
+        result = {
+            'success': 0,  # 0 表示上传失败，1 表示上传成功
+            'message': "上传失败",
+            'url': None
+        }
+        return JsonResponse(result)
+    ext = file_project.name.rsplit('.')[-1]  # 拿到后缀名
+    key = "{}-{}".format(uid(request.bug_mgt.user.mobile_phone), ext)
+    # project_obj = models.Project.objects.filter(id=project_id).first() 或 request.bug_mgt.project.bucket
+    bucket = request.bug_mgt.project.bucket
+    region = request.bug_mgt.project.region
+    file_url = cos.upload_file(bucket, file_project, region, key)
+    print(file_url)
+    result = {
+        'success': 1,  # 0 表示上传失败，1 表示上传成功
+        'message': "上传成功",
+        'url': file_url  # 上传成功时才返回
+    }
+    # 返回一个路径
+    return JsonResponse(result)
 
 
 def wiki_catalog(request, project_id):

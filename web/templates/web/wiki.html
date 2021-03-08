@@ -1,5 +1,7 @@
 {% extends 'layout/manage.html' %}
+{% load static %}
 {% block css %}
+    <link rel="stylesheet" href="{% static 'plugin/editor.md-master/editor.md-master/css/editormd.preview.min.css' %}">
     <style>
         .panel-body {
             padding: 0;
@@ -69,7 +71,9 @@
                 </div>
                 <div class="col-sm-9 content">
                     {% if wiki_object %}
-                        {{ wiki_object.content }}
+                        <div id="previewMarkdown">
+                            <textarea>{{ wiki_object.content }}</textarea>
+                        </div>
                     {% else %}
                         <div style="text-align: center; margin-top: 50px">
                             <h4>《{{ request.bug_mgt.project.name }}》Wiki文档库</h4>
@@ -84,10 +88,19 @@
     </div>
 {% endblock %}
 {% block js %}
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/flowchart.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/jquery.flowchart.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/marked.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/prettify.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/raphael.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/sequence-diagram.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/lib/underscore.min.js' %}"></script>
+    <script src="{% static 'plugin/editor.md-master/editor.md-master/editormd.min.js' %}"></script>
     <script>
         const WIKI_DETAIL_URL = "{% url 'wiki' project_id=request.bug_mgt.project.id %}"
         $(function () {
             initCatalog();
+            initPreviewEditor();
         });
 
         function initCatalog() {
@@ -116,6 +129,13 @@
                 }
             })
 
+        }
+
+        function initPreviewEditor() {
+            editormd.markdownToHTML('previewMarkdown', {
+                // 过滤掉style,script,iframe，防止在前端嵌入js代码xss攻击
+                htmlDecode: "style,script,iframe"
+            })
         }
     </script>
 {% endblock %}

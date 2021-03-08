@@ -134,6 +134,10 @@ SMS = 0
 TENCENT_SMS_APP_ID = 111
 TENCENT_SMS_APP_KEY = "QQQQQQQQQQQQQQQQQQQQ"
 
+# 腾讯cos存储的id和key
+TENCENT_COS_ID = 'secret_id'  # 替换为用户的 secretId
+TENCENT_COS_KEY = 'secret_key'  # 替换为用户的 secretKey
+
 # 短信签名
 TENCENT_SMS_SIGN = "PYTHON"
 
