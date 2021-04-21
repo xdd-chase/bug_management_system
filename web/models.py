@@ -21,8 +21,8 @@ class PricePolicy(models.Model):
     price = models.PositiveIntegerField(verbose_name='价格')
     project_num = models.PositiveIntegerField(verbose_name='项目个数')
     project_member = models.PositiveIntegerField(verbose_name='项目成员数')
-    project_space = models.PositiveIntegerField(verbose_name='单个项目空间')
-    per_file_size = models.PositiveIntegerField(verbose_name='单个文件大小')
+    project_space = models.PositiveIntegerField(verbose_name='单个项目空间', help_text='G')
+    per_file_size = models.PositiveIntegerField(verbose_name='单个文件大小', help_text='M')
     create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
 
 
@@ -57,7 +57,7 @@ class Project(models.Model):
     name = models.CharField(verbose_name='项目名', max_length=64)
     color = models.SmallIntegerField(verbose_name='颜色', choices=color_choice, default=1)
     desc = models.TextField(verbose_name='项目描述', null=True, blank=True)
-    used_space = models.IntegerField(verbose_name='项目已使用空间', default=0)
+    used_space = models.BigIntegerField(verbose_name='项目已使用空间', default=0, help_text='字节')
     star = models.BooleanField(verbose_name='星标', default=False)
     join_count = models.SmallIntegerField(verbose_name='项目参与人数', default=1)
     creator = models.ForeignKey(verbose_name='创建者', to='UserInfo', on_delete=models.CASCADE)
@@ -95,7 +95,7 @@ class FileRepository(models.Model):
     project = models.ForeignKey(verbose_name='项目', to='Project', on_delete=models.CASCADE)
     file_name = models.CharField(verbose_name='文件或文件夹名', max_length=64)
     file_type = models.SmallIntegerField(verbose_name='类型', choices=file_type_choice)
-    size = models.FloatField(verbose_name='大小', max_length=128, null=True)
+    size = models.BigIntegerField(verbose_name='大小', max_length=128, null=True, help_text='字节')
     parent = models.ForeignKey(verbose_name='父目录', to='FileRepository', null=True, blank=True, on_delete=models.CASCADE)
     key = models.CharField(verbose_name='唯一文件名称', max_length=128, null=True,
                            blank=True, )  # 当上传同名文件时，我们允许创建，给他设置一个key,来区分
