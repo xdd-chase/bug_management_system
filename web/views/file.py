@@ -1,6 +1,9 @@
 import json
+import requests
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.urls import reverse
+from django.utils.encoding import escape_uri_path
 from django.views.decorators.csrf import csrf_exempt
 from web import models
 from web.forms.file import FolderModelForm, FileModelForm
@@ -166,8 +169,27 @@ def file_post(request, project_id):
             'file_size': instance.size,
             'update_user': instance.update_user.username,
             'datetime': instance.update_time.strftime("%Y{}%m{}%d{} %H:%M").format('年', '月', '日'),
+            'download_url': reverse('file_download', kwargs={'project_id': project_id, 'file_id': instance.id}),
             'file_type': instance.get_file_type_display()
         }
         return JsonResponse({'status': True, 'data': result})
 
     return JsonResponse({'status': False, 'data': '文件错误'})
+
+
+def file_download(request, project_id, file_id):
+    """下载文件"""
+    # 文件内容
+    # 打开文件，获取文件内容，再将文件内容返回给前端，设置响应头，使得前端识别为文件下载
+    # with open('xxx', mode='rb') as f:
+    #     data = f.read
+    # 由于我们的文件存在cos中，不在本地，所以先从cos中拿到文件
+    file_object = models.FileRepository.objects.filter(id=file_id, project_id=project_id).first()
+    res = requests.get(file_object.file_path)
+    # 文件分块处理（适用于大文件）
+    data = res.iter_content()
+    # 设置content_type=application/octet-stream 用于提示下载框
+    response = HttpResponse(data, content_type="application/octet-stream")
+    # 设置响应头，中文文件名转义
+    response['Content-Disposition'] = "attachment; filename={}".format(escape_uri_path(file_object.file_name))
+    return response

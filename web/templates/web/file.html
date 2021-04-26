@@ -37,6 +37,7 @@
             width: 400px;
             display: none;
         }
+
         .close-btn {
             position: fixed;
             right: 15px;
@@ -111,8 +112,13 @@
                                    data-whatever="编辑文件夹" data-name="{{ item.file_name }}" data-fid="{{ item.id }}">
                                     <i class="fa fa-pencil-square-o" aria-hidden="true" title="编辑"></i>
                                 </a>
+                            {% else %}
+                                <a class="btn btn-default btn-xs"
+                                   href="{% url 'file_download' project_id=request.bug_mgt.project.id file_id=item.id %}">
+                                    <i class="fa fa-cloud-upload" aria-hidden="true"></i>
+                                </a>
                             {% endif %}
-                            <a class="btn btn-success btn-xs" data-toggle="modal" data-target="#alertModal"
+                            <a class="btn btn-danger btn-xs" data-toggle="modal" data-target="#alertModal"
                                data-fid="{{ item.id }}">
                                 <i class="fa fa-trash" aria-hidden="true" title="删除"></i>
                             </a>
@@ -172,7 +178,7 @@
         <div class="panel panel-primary">
             <!-- Default panel contents -->
             <div class="panel-heading"><i class="fa fa-cloud-upload" aria-hidden="true"></i>上传进度
-            <button type="button" class="close-btn"><i class="fa fa-times" aria-hidden="true"></i></button>
+                <button type="button" class="close-btn"><i class="fa fa-times" aria-hidden="true"></i></button>
             </div>
             <div></div>
 
@@ -212,11 +218,9 @@
                 <td class="update-user"></td>
                 <td class="update-datetime"></td>
                 <td>
-                    <!--
                     <a class="btn btn-default btn-xs download">
                         <i class="fa fa-cloud-upload" aria-hidden="true"></i>
                     </a>
-                    -->
                     <a class="btn btn-danger btn-xs delete" data-toggle="modal" data-target="#alertModal"
                        data-fid="{{ item.id }}">
                         <i class="fa fa-trash" aria-hidden="true" title="删除"></i>
@@ -236,13 +240,13 @@
         var FILE_POST = "{% url 'file_post' project_id=request.bug_mgt.project.id %}"
         // 当前文件夹对象
         var CURRENT_FOLDER_ID = "{{ folder_object.id }}"
-            $(function () {
-                initModelTitle();
-                bindModelSubmit();
-                bindModelDelete();
-                bindUploadFile();
-                bindCloseBtn();
-            })
+        $(function () {
+            initModelTitle();
+            bindModelSubmit();
+            bindModelDelete();
+            bindUploadFile();
+            bindCloseBtn();
+        })
 
         function initModelTitle() {
             $('#addModal').on('show.bs.modal', function (event) {
@@ -401,6 +405,7 @@
                                     newTr.find('.update-user').text(res.data.update_user)
                                     newTr.find('.update-datetime').text(res.data.datetime)
                                     newTr.find('.delete').attr('data-fid', res.data.id)
+                                    newTr.find('.download').attr('href', res.data.download_url)
                                     $("#rowList").append(newTr)
 
                                     console.log(res)
@@ -414,6 +419,7 @@
                 });
             })
         }
+
         function bindCloseBtn() {
             $(".close-btn").click(function () {
                 $(".upload-progress").css("display", "none")
