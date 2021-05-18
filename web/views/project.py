@@ -49,7 +49,13 @@ def project_list(request):
         form.instance.creator = request.bug_mgt.user
         form.instance.bucket = bucket
         form.instance.region = region
-        form.save()
+        # 保存项目后返回一个对象
+        instance = form.save()
+        # 项目初始化问题类型
+        issues_type_list = []
+        for item in models.IssuesType.PROJECT_INIT_LIST:
+            issues_type_list.append(models.IssuesType(project=instance, title=item))
+        models.IssuesType.objects.bulk_create(issues_type_list)
         return JsonResponse({'status': True})
     return JsonResponse({'status': False, 'error': form.errors})
 
