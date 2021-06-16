@@ -13,6 +13,5 @@ class BootStrapForm(object):
                 continue
             # 为防止还有原来自带的class属性，我们获取一下，再用占位符添加进去
             old_class = field.widget.attrs.get('class', "")
-            print('sss', old_class)
             field.widget.attrs['class'] = '{} form-control'.format(old_class)
             field.widget.attrs['placeholder'] = '请输入%s' % (field.label,)

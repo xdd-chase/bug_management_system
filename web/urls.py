@@ -55,6 +55,7 @@ urlpatterns = [
         path('issues/', issues.issues, name='issues'),
         path('issues/detail/<int:issue_id>', issues.issue_detail, name='issue_detail'),
         path('issues/record/<int:issue_id>', issues.issue_record, name='issue_record'),
+        path('issues/change/<int:issue_id>', issues.issue_change, name='issue_change'),
     ])),
 
 ]

@@ -131,7 +131,7 @@ class Issues(models.Model):
         (7, '重新打开'),
     )
     status = models.SmallIntegerField(verbose_name='状态', max_length=16, choices=status_choices, default=1)
-    assign = models.ForeignKey(verbose_name='指派', to='UserInfo', related_name='task', blank=True,
+    assign = models.ForeignKey(verbose_name='指派', to='UserInfo', related_name='task', blank=True, null=True,
                                on_delete=models.CASCADE)
     attention = models.ManyToManyField(verbose_name='关注者', to='UserInfo', related_name='observe', blank=True)
     start_date = models.DateField(verbose_name='开始时间', null=True, blank=True)
