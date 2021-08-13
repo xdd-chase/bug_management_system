@@ -1,12 +1,15 @@
+import datetime
 import json
 
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
-from web.forms.issues import IssuesModelForm, IssuesReplyModelForm
+from web.forms.issues import IssuesModelForm, IssuesReplyModelForm, InviteModelForm
 from web import models
 from utils.pagination import Pagination
+from utils.encrypt import uid
 
 
 class CheckFilter(object):
@@ -111,8 +114,11 @@ def issues(request, project_id):
         project_join_user = models.ProjectUser.objects.filter(project_id=project_id).values_list('user_id',
                                                                                                  'user__username')
         project_total_user.extend(project_join_user)
+
+        invite_form = InviteModelForm()
         context = {
             'form': form,
+            'invite_form': invite_form,
             'issues_object_list': issues_object_list,
             'page_html': page_object.page_html(),
             'filter_list': [
@@ -304,3 +310,82 @@ def issue_change(request, project_id, issue_id):
             change_record = '{}更新为{}'.format(filed_objects.verbose_name, ",".join(username_list))
         return JsonResponse({'status': True, 'data': create_reply_record(change_record)})
     return JsonResponse({'status': False, 'error': '数据错误'})
+
+
+def invite_url(request, project_id):
+    """生成邀请码"""
+    form = InviteModelForm(data=request.POST)
+    if form.is_valid():
+        """
+        1.创建随机的邀请码
+        2.验证码保存到数据库
+        3.限制：只有项目创建者才能邀请
+        """
+        if request.bug_mgt.user != request.bug_mgt.project.creator:
+            form.add_error('period', "无权创建邀请码")
+            return JsonResponse({'status': False, 'error': form.errors})
+        else:
+            # 生成邀请码并保存到数据库
+            random_invite_code = uid(request.bug_mgt.user.mobile_phone)
+            form.instance.project = request.bug_mgt.project
+            form.instance.code = random_invite_code
+            form.instance.creator = request.bug_mgt.user
+            form.save()
+            # 将邀请码返回给前端，前端页面展示出来
+            # 通过reverse方法生成路径：invite/join/code/
+            url_path = reverse('invite_join', kwargs={'code': random_invite_code})
+            url = "{scheme}://{host}{path}".format(
+                scheme=request.scheme,
+                host=request.get_host(),
+                path=url_path
+            )
+            return JsonResponse({'status': True, 'data': url})
+    return JsonResponse({'status': False, 'error': form.errors})
+
+
+def invite_join(request, code):
+    """访问邀请码"""
+    current_date = datetime.datetime.now()
+    invite_project = models.ProjectInvite.objects.filter(code=code).first()
+    # 判断邀请码是否存在
+    if not invite_project:
+        return render(request, 'web/invite_join.html', {'error': '邀请码不存在'})
+    # 判断是否是项目创建者，创建者不需要加入项目
+    if invite_project.project.creator == request.bug_mgt.user:
+        return render(request, 'web/invite_join.html', {'error': '创建者无需再加入项目'})
+    # 判断用户是否加入此项目
+    exists = models.ProjectUser.objects.filter(project=invite_project.project, user=request.bug_mgt.user).exists()
+    if exists:
+        return render(request, 'web/invite_join.html', {'error': '已加入项目，无需再加入'})
+    # 允许最多的成员(要进入的项目的创建者的限制)
+    # 判断要进入的那个项目的额度（是免费额度还是收费版额度）,通过order_by('-id')查到最大的额度
+    max_transaction = models.Transaction.objects.filter(user=invite_project.project.creator).order_by('-id').first()
+    if max_transaction.price_policy.category == 1:
+        max_member = max_transaction.price_policy.project_member
+    else:
+        # 判断当前套餐是否过期, 若过期，则使用免费额度
+        if max_transaction.end_datetime < current_date:
+            free_object = models.PricePolicy.objects.filter(category=1).first()
+            max_member = free_object.project_member
+        else:
+            max_member = max_transaction.price_policy.project_member
+
+    # 目前项目所有成员（创建者和参与者）
+    current_member = models.ProjectUser.objects.filter(project=invite_project.project).count()
+    current_member = current_member + 1
+    if current_member >= max_member:
+        return render(request, 'web/invite_join.html', {'error': '项目成员已超限，请购买套餐'})
+    # 邀请码是否过期
+    limit_time = invite_project.create_datetime + datetime.timedelta(minutes=invite_project.period)
+    if current_date > limit_time:
+        return render(request, 'web/invite_join.html', {'error': '验证码已过期'})
+    # 数量限制
+    if invite_project.count:
+        if invite_project.use_count >= invite_project.count:
+            return render(request, 'web/invite_join.html', {'error': '邀请码数量已用完'})
+        else:
+            invite_project.use_count += 1
+            invite_project.save()
+    # 所有判断验证完成后，将此被邀请者加入到项目成员中
+    models.ProjectUser.objects.create(user=request.bug_mgt.user, project=invite_project.project)
+    return render(request, 'web/invite_join.html', {'project': invite_project.project})

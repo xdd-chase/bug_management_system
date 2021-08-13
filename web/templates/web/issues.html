@@ -106,7 +106,7 @@
                 </div>
                 <div class="panel-body">
                     <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#addModal">新建问题</a>
-                    <a class="btn btn-primary btn-sm">邀请成员</a>
+                    <a class="btn btn-primary btn-sm" data-toggle="modal" data-target="#inviteModal">邀请成员</a>
                 </div>
                 <!-- Table -->
                 <table class="table">
@@ -304,6 +304,61 @@
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">邀请人员</h4>
+                </div>
+                <div class="modal-body" style="padding-right: 40px;">
+                    <form id="inviteForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ invite_form.period.id_for_label }}"
+                                   class="control-label">{{ invite_form.period.label }}</label>
+                            <div>
+                                <div>
+                                    {{ invite_form.period }}
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                            <div class="error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ invite_form.count.id_for_label }}"
+                                   class="control-label">{{ invite_form.count.label }}</label>
+                            <span>({{ invite_form.count.help_text }})</span>
+                            <div>
+                                <div>
+                                    {{ invite_form.count }}
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                            <div class="error-msg"></div>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnGenInviteCode">生成邀请码</button>
+                    </form>
+                    <div id="inviteArea" class="hide">
+                        <hr/>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <input type="button" value="邀请链接" class="btn btn-default">
+                                </div>
+                                <input type="text" class="form-control" id="inviteUrl">
+                                <div class="input-group-btn">
+                                    <input type="button" value="复制链接" class="btn btn-primary" id="btnCopyUrl">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 {% block js %}
     <script src="{% static 'plugin/editor.md-master/editor.md-master/editormd.min.js' %}"></script>
@@ -316,12 +371,15 @@
     <script>
         const WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.bug_mgt.project.id %}"
         const POST_ISSUES = "{% url 'issues' project_id=request.bug_mgt.project.id %}"
+        const INVITE_URL = "{% url 'invite_url' project_id=request.bug_mgt.project.id %}"
         $(function () {
             initBootStrapShownEvent();
             initBootStrapDatepicker();
             bindAddSubmit();
             bindClickCheckFilter();
             initSelect2();
+            bindCreateInviteCode();
+            bindCopyUrl();
         })
 
         function initSelect2() {
@@ -387,6 +445,38 @@
                         console.log(res)
                     }
                 })
+            })
+        }
+
+        // 点击生成邀请码
+        function bindCreateInviteCode() {
+            $('#btnGenInviteCode').click(function () {
+                $('#inviteForm').find('.error-msg').empty()
+                $.ajax({
+                    url: INVITE_URL,
+                    type: 'POST',
+                    data: $('#inviteForm').serialize(),
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            $('#inviteArea').removeClass('hide').find('#inviteUrl').val(res.data)
+                        } else {
+                            $.each(res.error, function (k, v) {
+                                $('#id_' + k).next('.error-msg').text(v[0])
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        // 点击拷贝邀请码
+        function bindCopyUrl() {
+            $('#btnCopyUrl').click(function () {
+                var textInput = $('#inviteUrl')[0]; // 将jquery对象变成dom对象
+                textInput.select();
+                document.execCommand("Copy");
+                alert("复制成功")
             })
         }
     </script>

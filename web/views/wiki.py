@@ -85,7 +85,7 @@ def wiki_edit(request, project_id, wiki_id):
 @csrf_exempt
 def wiki_upload(request, project_id):
     """markdown插件上传图片"""
-    file_project = request.FILES.get('editormd-image-file')
+    file_project = request.FILES.get('editormd-image-files')
     if not file_project:
         result = {
             'success': 0,  # 0 表示上传失败，1 表示上传成功

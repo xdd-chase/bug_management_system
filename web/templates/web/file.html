@@ -401,7 +401,7 @@
                                     // 成功
                                     var newTr = $("#rowTpl").find('tr').clone();
                                     newTr.find('.name').text(res.data.name)
-                                    newTr.find('.file-size').text(res.data.file_size)
+                                    newTr.find('.files-size').text(res.data.file_size)
                                     newTr.find('.update-user').text(res.data.update_user)
                                     newTr.find('.update-datetime').text(res.data.datetime)
                                     newTr.find('.delete').attr('data-fid', res.data.id)

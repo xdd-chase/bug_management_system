@@ -126,9 +126,13 @@ def cos_credential(request, project_id):
             return JsonResponse({'status': False, 'error': msg})
         total_size += item['size']
     # 总容量进行限制
-    if total_size > (request.bug_mgt.price_policy.project_space - request.bug_mgt.project.used_space) * 1024 * 1024:
-        return JsonResponse({'status': False, 'error': '超出总容量限制，请升级套餐'})
+    if total_size > (
+            request.bug_mgt.price_policy.project_space * 1024 * 1024 * 1024 - request.bug_mgt.project.used_space):
         print(file_list)
+        print(request.bug_mgt.project.used_space)
+        print(total_size)
+        return JsonResponse({'status': False, 'error': '超出总容量限制，请升级套餐'})
+
     data_dict = credential(request.bug_mgt.project.bucket, request.bug_mgt.project.region)
     return JsonResponse({'status': True, 'data': data_dict}, safe=False)
 
